@@ -85,7 +85,7 @@ plugins/chunithm-push/
 - 官方 X：[@chunithm](https://x.com/chunithm)（通过 FxTwitter 镜像读取）
 - 曲目、别名、成绩：落雪 LXNS `https://maimai.lxns.net/`
 
-本项目与 SEGA、CHUNITHM 官方、落雪 LXNS 均无隶属关系。官方情报版权归 SEGA 所有；落雪数据版权归落雪及相应玩家所有。
+本项目与 SEGA、CHUNITHM 官方、落雪 LXNS 均无隶属关系。
 
 ## 已知限制
 
