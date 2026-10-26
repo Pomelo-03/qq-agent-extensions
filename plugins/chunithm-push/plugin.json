@@ -1,0 +1,73 @@
+{
+  "id": "chunithm-push",
+  "name": "中二节奏情报推送",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "message",
+  "description": "定时检查 CHUNITHM 官方 X（@chunithm）和官方网站，有新公告就自动推到白名单群。默认 15 分钟检查一次、最多一次推 5 条；首次运行只记录旧情报不补发，避免装好后刷屏。推送走 QQ Agent 控制台的本地发送接口，会经过白名单校验并写入聊天存档（下一次运行她知道这条是自己发的）。X 抓取用的是第三方镜像，偶尔失败时官网通常还能补上。",
+  "author": "为 QQ Agent 定制",
+  "enabledByDefault": true,
+  "capabilities": ["status.chunithm-push"],
+  "requires": [],
+  "permissions": ["web_fetch"],
+
+  "settings": {
+    "enabled": true,
+    "groupIds": "",
+    "intervalMinutes": 15,
+    "includeX": true,
+    "includeSite": true,
+    "maxPerPush": 5,
+    "firstRunPush": false,
+    "quietStart": 1,
+    "quietEnd": 7
+  },
+
+  "configSchema": {
+    "enabled": {
+      "type": "boolean",
+      "label": "启用自动推送",
+      "description": "总开关。默认开。关掉后不再检查，也不会再往群里发情报。"
+    },
+    "groupIds": {
+      "type": "string",
+      "label": "推送到哪些群（留空 = 白名单全部）",
+      "description": "填群号，多个用逗号或换行分隔。留空时自动使用设置 → 白名单里的所有群。这里填的群如果不在白名单里，会被控制台接口拒绝。"
+    },
+    "intervalMinutes": {
+      "type": "number",
+      "label": "检查间隔（分钟）",
+      "description": "默认 15。每个间隔抓一次官方 X 和官网；没有新内容就什么都不发。建议不要低于 10 分钟，避免频繁请求。"
+    },
+    "includeX": {
+      "type": "boolean",
+      "label": "包含官方 X（@chunithm）",
+      "description": "默认开。X 通过第三方镜像 FxTwitter 读取，偶尔会慢或失败；失败时官网仍然照常检查。"
+    },
+    "includeSite": {
+      "type": "boolean",
+      "label": "包含官方网站",
+      "description": "默认开。官网的新闻接口比 X 稳定，建议保留作为兜底。"
+    },
+    "maxPerPush": {
+      "type": "number",
+      "label": "一次最多推几条",
+      "description": "默认 5。同一次检查发现很多新内容时只推最新的几条，其余会在消息末尾提示去官网看。"
+    },
+    "firstRunPush": {
+      "type": "boolean",
+      "label": "首次运行也补发旧情报",
+      "description": "默认关。关着时第一次检查只把现有内容记为已读，不会把历史公告一股脑推到群里；打开后第一次就会推送最新的几条。"
+    },
+    "quietStart": {
+      "type": "number",
+      "label": "安静时段开始（小时，0~23）",
+      "description": "默认 1 点。安静时段内不检查、不推送，避免半夜刷屏。把开始和结束设成相同值即可关闭安静时段。"
+    },
+    "quietEnd": {
+      "type": "number",
+      "label": "安静时段结束（小时，0~23）",
+      "description": "默认 7 点。到点后的第一次检查会恢复正常推送。"
+    }
+  }
+}
