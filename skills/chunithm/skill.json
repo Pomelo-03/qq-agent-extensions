@@ -1,0 +1,142 @@
+{
+  "id": "chunithm",
+  "name": "中二节奏情报站",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "category": "knowledge",
+  "description": "CHUNITHM（中二节奏）的一站式查询：① 官方 X @chunithm 与官方网站的最新公告/活动/更新；② 落雪（LXNS）曲目库——按曲名、别名或曲目 ID 查 BPM、分类、版本、各难度定数、谱师和物量；③ 落雪查分——按 QQ 号或好友码查玩家资料与 Best 30 / Selection 10 / New 20。曲目和成绩数据以落雪为准，不使用水鱼。查分需要在技能设置里填落雪开发者密钥。",
+  "author": "为 QQ Agent 定制",
+  "entry": "index.js",
+  "enabledByDefault": true,
+
+  "capabilities": [],
+  "requires": [],
+  "permissions": ["web_fetch"],
+
+  "settings": {
+    "enabled": true,
+    "lxnsToken": "",
+    "playerTopCount": 10
+  },
+
+  "configSchema": {
+    "enabled": {
+      "type": "boolean",
+      "label": "启用中二节奏情报站",
+      "description": "总开关。关掉后模型看不到这三个工具，也不会注入使用说明。"
+    },
+    "lxnsToken": {
+      "type": "string",
+      "label": "落雪开发者密钥（查分用）",
+      "description": "落雪 LXNS 的开发者 API 密钥（请求头 Authorization）。到 https://maimai.lxns.net/developer/apply 申请后填在这里。只保存在本机 data/config.json。不填也能查官方情报和曲目定数，只是查不了玩家成绩。",
+      "secret": true
+    },
+    "playerTopCount": {
+      "type": "number",
+      "label": "查分时最多列多少条 Best",
+      "description": "默认 10。Best 30 / New 20 / Selection 10 各自最多列这么多条，避免一条消息太长。"
+    }
+  },
+
+  "prompt": {
+    "sections": [
+      {
+        "id": "chunithm-usage",
+        "title": "中二节奏情报站",
+        "priority": 45,
+        "content": "你是群里的中二节奏（CHUNITHM）情报助手。有人问官方更新、曲目定数/谱面、或者落雪成绩时，用下面三个工具查，不要凭记忆编。\n\n【工具】\n- chunithm__news：官方 X（@chunithm）+ 官方网站的最新公告。返回日文原文和链接。\n- chunithm__song：按曲名/别名/曲目 ID 查落雪曲目库：BPM、分类、版本、各难度定数、谱师、物量。\n- chunithm__player：按 QQ 号或好友码查落雪（LXNS）玩家资料和 Best 30 / Selection 10 / New 20。\n\n【先确认工具在不在】如果上述工具不在你这次的可用工具列表里（多半是设置里按分类关掉了这类工具），就当这段提示不存在：不要调它、也不要提这些功能，正常聊别的即可——硬调只会得到「未知工具」。\n\n【怎么答】\n1. 官方情报：先用 chunithm__news 拿最新几条，再用中文概括，别逐字机翻；保留原文里的日期、活动名、曲名和链接。对方问「最近有什么更新」就给 3~5 条，不要一屏全贴。\n2. 曲目/定数：先 chunithm__song。报定数时说清楚是「定数」还是「标级」（例如 MASTER 14.7 是定数，游戏里显示 14+）。有多个同名/近似曲时，先列候选问对方是哪一个，别猜。\n3. 查分：chunithm__player 的 query 填对方给的 QQ 号或好友码。如果对方说「查我的」，用这条消息的发送者 QQ 号；拿不到就问他好友码。查分需要落雪开发者密钥，而且对方要在落雪里开启第三方读取——工具报这两种情况时，把原因原样告诉对方，别说是「没查到」。\n4. 数据口径：曲目和成绩都来自落雪 LXNS，不是官方；官方情报来自 SEGA。回答里不要伪造不存在的曲目、定数、成绩或更新时间。\n5. 链接：官方情报至少带一个来源链接；曲目和成绩不必贴 API 链接。\n6. 语言：对方用中文就用中文；曲名、活动名保留日文原名，必要时括号加中文。\n7. 别每次聊天都查。只有对方明确问 CHUNITHM 相关的事才用工具；普通闲聊不要主动报情报。\n\n【常见说法】\n- 「定数」= 谱面定数（level_value），不是游戏里显示的标级。\n- 「b30 / 最好成绩」= Best 30；「新曲 20」= New 20；「选曲 10」= Selection 10。\n- 「水鱼」是另一个查分器；本技能按用户要求以落雪为准，不提水鱼的数据。\n- WORLD'S END 的难度索引是 5，定数/星级/属性在工具结果里单独标。\n\n【失败时】\n- 工具返回「需要配置落雪开发者密钥」：把申请地址和填写位置告诉对方（技能设置里），不要反复重试。\n- 工具返回 403/隐私：让对方去落雪账号设置打开「允许读取玩家信息 / 允许读取谱面成绩」。\n- 工具返回 404：确认 QQ 是否绑定落雪、好友码是否正确、是否同步过成绩。\n- X 抓取失败时官网通常还能用；先给官网结果，并说明 X 这次没取到。对方明确要看 X 推文、而你的工具列表里有 web_search 时，可以再搜「from:chunithm」或「site:x.com/chunithm」补充；没有这个工具就只给官网结果。"
+      }
+    ]
+  },
+
+  "triggers": {
+    "when": "有人问 CHUNITHM / 中二节奏的官方更新、活动、新曲、曲目定数、谱面物量、落雪查分、Best 30 等",
+    "examples": [
+      "中二最近有什么更新",
+      "官推发新曲了吗",
+      "查一下 B.B.K.K.B.K.K. 的定数",
+      "这首歌 MASTER 多少定数",
+      "帮我查下落雪 b30，QQ 是 123456789",
+      "好友码 123456789000000 的 rating 多少"
+    ]
+  },
+
+  "tools": [
+    {
+      "id": "news",
+      "name": "查中二节奏官方最新情报",
+      "description": "获取 CHUNITHM 官方 X（@chunithm）和官方网站的最新公告、活动、更新，返回日文原文与链接。只查资料，不发消息。",
+      "category": "knowledge",
+      "icon": "📰",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": ["all", "x", "official"],
+            "description": "all=两边都查（默认）；x=只查官方 X；official=只查官方网站。"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "description": "最多返回几条，默认 10。"
+          }
+        }
+      }
+    },
+    {
+      "id": "song",
+      "name": "查中二节奏曲目与定数",
+      "description": "按曲名、常见别名或曲目 ID 搜索落雪 LXNS 曲目库，返回 BPM、分类、版本、各难度定数、谱师和物量。只查资料，不发消息。",
+      "category": "knowledge",
+      "icon": "🎵",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "曲名（中日文均可）、常见别名，或纯数字曲目 ID。"
+          },
+          "difficulty": {
+            "type": "string",
+            "description": "只看某个难度：BASIC / ADVANCED / EXPERT / MASTER / ULTIMA / WORLD'S END，或 0~5。不填则列出全部难度。"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "最多返回几首匹配曲目，默认 5。"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "id": "player",
+      "name": "查落雪中二节奏成绩",
+      "description": "按 QQ 号或好友码查询落雪（LXNS）玩家的资料、Rating、Best 30、Selection 10、New 20。需要在本技能设置里填写落雪开发者密钥；不填时返回申请指引。",
+      "category": "knowledge",
+      "icon": "📊",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "被查玩家的 QQ 号或落雪好友码（纯数字）。"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["auto", "qq", "friend_code"],
+            "description": "auto=按长度自动判断（默认，13 位以上当好友码）；qq=按 QQ 号查；friend_code=按好友码查。"
+          },
+          "scores": {
+            "type": "boolean",
+            "description": "是否返回 Best 30 / Selection 10 / New 20，默认 true。只想看 Rating 时传 false。"
+          }
+        },
+        "required": ["query"]
+      }
+    }
+  ]
+}
